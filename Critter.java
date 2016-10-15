@@ -48,124 +48,78 @@ public abstract class Critter {
 	
 	private int x_coord;
 	private int y_coord;
+	
+	public Critter(){ // constructor for Critter
+		energy = Params.start_energy;
+		x_coord = getRandomInt(Params.world_width - 1);
+		y_coord = getRandomInt(Params.world_height - 1);
+	}
+	
+	protected int wrapX(int pos){
+		if (pos < 0){
+			return Params.world_width - 1;
+		}
+		else if (pos == Params.world_width){
+			return 0;
+		}
+		else{
+			return pos;
+		}
+	}
+	
+	protected int wrapY(int pos){
+		if (pos < 0){
+			return Params.world_height - 1;
+		}
+		else if (pos == Params.world_height){
+			return 0;
+		}
+		else{
+			return pos;
+		}
+	}
+	
+	protected int newX(int direction){
+		switch(direction){
+		case 0: return wrapX(x_coord + 1);
+		case 1: return wrapX(x_coord + 1);
+		case 7: return wrapX(x_coord + 1);
+		case 3: return wrapX(x_coord - 1);
+		case 4: return wrapX(x_coord - 1);
+		case 5: return wrapX(x_coord - 1);
+		}
+		return x_coord; // for directions 2 and 6
+	}
+	
+	protected int newY(int direction){
+		switch(direction){
+		case 5: return wrapY(y_coord + 1);
+		case 6: return wrapY(y_coord + 1);
+		case 7: return wrapY(y_coord + 1);
+		case 1: return wrapY(y_coord - 1);
+		case 2: return wrapY(y_coord - 1);
+		case 3: return wrapY(y_coord - 1);
+		}
+		return y_coord; // for direction 0 and 4
+	}
+	
 	protected final void walk(int direction) {
-		if(direction == 0){
-			if(x_coord < Params.world_width-1){			//if not at edge increment
-				x_coord++;
-			} else if (x_coord == Params.world_width-1){	// if at edge flip
-				x_coord = 0;
-			}
-		}
-		if(direction == 1){
-			if(x_coord < Params.world_width-1 && y_coord > 0){	// if not at edge increment
-				x_coord++;
-				y_coord--;
-			}
-			if(x_coord == Params.world_width-1 && y_coord > 0){	//if at right edge but not touching top side
-				x_coord = 0;
-				y_coord--;
-			}
-			if(x_coord < Params.world_width-1 && y_coord == 0){	//if at top edge and not at right edge
-				x_coord++;
-				y_coord = Params.world_height-1;
-			}
-			if(x_coord == Params.world_width-1 && y_coord == 0){	// if at top right corner
-				x_coord = 0;
-				y_coord = Params.world_height-1;
-			}
-		}
-		if(direction == 2){
-			if(y_coord == 0){	// if at top edge
-				y_coord = Params.world_height-1;
-			}
-			if(y_coord < 0){	// if not at top dge
-				y_coord--;
-			}
-		}
-		if(direction == 3){
-			if(x_coord > 0 && y_coord > 0){		// if not at top edge and left edge
-				x_coord--;
-				y_coord--;
-			}
-			if(x_coord == 0 && y_coord > 0){	// if at left edge and not at top edge
-				x_coord = Params.world_width-1;
-				y_coord--;
-			}
-			if(x_coord > 0 && y_coord == 0){	// if at top edge and not at left edge
-				x_coord--;
-				y_coord = Params.world_height-1;
-			}
-			if(x_coord == 0 && y_coord == 0){	// if in top left corner
-				x_coord = Params.world_width-1;
-				y_coord = Params.world_height-1;
-			}
-		}
-		if(direction == 4){
-			if(x_coord > 0){	// if not at left edge
-				x_coord--;
-			}
-			if(x_coord == 0){
-				x_coord = Params.world_width-1;		// if at left edge
-			}
-		}
-		if(direction == 5){
-			if(x_coord > 0 && y_coord < Params.world_height-1){		// if not at left edge and not at bottom edge
-				x_coord--;
-				y_coord++;
-			}
-			if(x_coord > 0 && y_coord == Params.world_height-1){	// if at bottom edge and not at left edge
-				x_coord--;
-				y_coord = 0;
-			}
-			if(x_coord == 0 && y_coord < Params.world_height-1){	// if at left edge and not at bottom edge
-				x_coord = Params.world_width-1;
-				y_coord++;
-			}
-			if(x_coord == 0 && y_coord == Params.world_height-1){	// if in bottom left corner
-				x_coord = Params.world_width-1;
-				y_coord = 0;
-			}
-		}
-		if(direction == 6){
-			if(y_coord < Params.world_height-1){
-				y_coord++;
-			}
-			if(y_coord == Params.world_height-1){
-				y_coord = 0;
-			}
-		}
-		if(direction == 7){
-			if(x_coord < Params.world_width-1 && y_coord < Params.world_height-1){	// if not at bottom edge and not at right edge
-				x_coord++;
-				y_coord++;
-			}
-			if(x_coord == Params.world_width-1 && y_coord < Params.world_height-1){	// if at right edge and not at bottom edge
-				x_coord = 0;
-				y_coord++;
-			}
-			if(x_coord < Params.world_width-1 && y_coord == Params.world_height-1){	// if at bottom edge and not at right edge
-				x_coord++;
-				y_coord = 0;
-			}
-			if(x_coord == Params.world_width-1 && y_coord == Params.world_height-1){	// if in bottom right corner
-				x_coord = 0;
-				y_coord = 0;
-			}
-		}
+		x_coord = newX(direction);
+		y_coord = newY(direction);
 		energy = energy - Params.walk_energy_cost;
 	}
-
+	
 	protected final void run(int direction) {
 		walk(direction);
 		walk(direction);
 		energy = energy - Params.run_energy_cost + Params.walk_energy_cost + Params.walk_energy_cost;
 	}
-	//TODO
+	
 	protected final void reproduce(Critter offspring, int direction) {
 	}
 
 	public abstract void doTimeStep();
-	public abstract boolean fight(String opponent);
+	public abstract boolean fight(String oponent);
 	
 	/**
 	 * create and initialize a Critter subclass.
@@ -176,15 +130,31 @@ public abstract class Critter {
 	 * an Exception.)
 	 * @param critter_class_name
 	 * @throws InvalidCritterException
-	 * TODO
 	 */
 	public static void makeCritter(String critter_class_name) throws InvalidCritterException {
-		/*if(!CritterWorld.critterNames.contains(critter_class_name)){
+		try{
+			String packageClass = myPackage + "." + critter_class_name;
+			Class critterClass = Class.forName(packageClass);
+			Object newCritter = critterClass.newInstance();
+			
+			if (!(newCritter instanceof Critter)){
+				throw new InvalidCritterException(critter_class_name);
+			}
+			
+			CritterWorld.critterCollection.add((Critter)newCritter); // add to the critter collection
+		}
+		catch(ClassNotFoundException c){
 			throw new InvalidCritterException(critter_class_name);
-		}*/
-		
-		// add newly created Critter to CritterWorld's critterCollection list
-		
+		}
+		catch(InstantiationException i){
+			throw new InvalidCritterException(critter_class_name);
+		}
+		catch(IllegalAccessException a){
+			throw new InvalidCritterException(critter_class_name);
+		}
+		catch(Exception e){
+			throw new InvalidCritterException(critter_class_name);
+		}
 	}
 	
 	/**
@@ -192,11 +162,32 @@ public abstract class Critter {
 	 * @param critter_class_name What kind of Critter is to be listed.  Unqualified class name.
 	 * @return List of Critters.
 	 * @throws InvalidCritterException
-	 * TODO
 	 */
 	public static List<Critter> getInstances(String critter_class_name) throws InvalidCritterException {
 		List<Critter> result = new java.util.ArrayList<Critter>();
-	
+		try{
+			String packageClass = myPackage + "." + critter_class_name;
+			Class critterClass = Class.forName(packageClass);
+			Object newCritter = critterClass.newInstance();
+			if (!(newCritter instanceof Critter)){
+				throw new InvalidCritterException(critter_class_name);
+			}
+			
+			for(Critter c: CritterWorld.critterCollection){
+				if (critterClass.isAssignableFrom(c.getClass())){
+					result.add(c);
+				}
+			}
+		}
+		catch(ClassNotFoundException c){
+			
+		}
+		catch(InstantiationException i){
+			
+		}
+		catch(IllegalAccessException a){
+			
+		}
 		return result;
 	}
 	
@@ -240,18 +231,18 @@ public abstract class Critter {
 		}
 		
 		protected void setX_coord(int new_x_coord) {
-			super.x_coord = new_x_coord;	// change to Params.x_coord?
+			super.x_coord = new_x_coord;
 		}
 		
 		protected void setY_coord(int new_y_coord) {
-			super.y_coord = new_y_coord;	// change to Params.y_coord?
+			super.y_coord = new_y_coord;
 		}
 		
-		protected int getX_coord() {	// change to Params.x_coord?
+		protected int getX_coord() {
 			return super.x_coord;
 		}
 		
-		protected int getY_coord() {	// change to Params.y_coord?
+		protected int getY_coord() {
 			return super.y_coord;
 		}
 		
@@ -260,9 +251,8 @@ public abstract class Critter {
 		 * This method getPopulation has to be modified by you if you are not using the population
 		 * ArrayList that has been provided in the starter code.  In any case, it has to be
 		 * implemented for grading tests to work.
-		 * TODO
 		 */
-		protected static List<Critter> getPopulation() {
+		protected List<Critter> getPopulation() {
 			return population;
 		}
 		
@@ -271,31 +261,67 @@ public abstract class Critter {
 		 * ArrayList that has been provided in the starter code.  In any case, it has to be
 		 * implemented for grading tests to work.  Babies should be added to the general population 
 		 * at either the beginning OR the end of every timestep.
-		 * TODO
 		 */
-		protected static List<Critter> getBabies() {
+		protected List<Critter> getBabies() {
 			return babies;
 		}
 	}
+	
+	
 
-	/**
-	 * Clear the world of all critters, dead and alive TODO
-	 */
-	public static void clearWorld() {
-	}
-	//TODO
 	public static void worldTimeStep() {
-		int lilbugIndex = 0;
-		for(Critter lilbug: CritterWorld.critterCollection){	// 1) invoke doTimeStep
-			lilbug.doTimeStep();
-			lilbug.energy =- Params.rest_energy_cost;	// 5) apply rest energy cost to all critters
-			if(lilbug.energy >= 0){						// 6) remove dead bugs from critterCollection list
-				CritterWorld.critterCollection.remove(lilbugIndex);
+		for(Critter c: CritterWorld.critterCollection){ // invoke doTimeStep for all critters
+			c.doTimeStep();
+		}
+		
+		for(Critter c: CritterWorld.critterCollection){ // apply rest energy cost to all critters
+			c.energy = c.energy - Params.rest_energy_cost;
+		}
+		
+		for(int i = 0; i < CritterWorld.critterCollection.size(); i++){ // remove all dead critters
+			Critter c = CritterWorld.critterCollection.get(i);
+			if (c.energy <= 0){
+				CritterWorld.critterCollection.remove(i);
+				i -= 1;
+			}
+			
+			if (CritterWorld.critterCollection.size() == 0){
+				break;
 			}
 		}
-	}
-	//TODO
-	public static void displayWorld() {
 		
+	}
+	
+	public static void displayWorld() {
+		String[][] critterWorld = new String[Params.world_width + 2][Params.world_height + 2];
+		
+		for(int i = 0; i < (Params.world_height + 2); i++){
+			for(int j = 0; j < (Params.world_width + 2); j++){
+				critterWorld[j][i] = " ";
+			}
+		}
+		
+		critterWorld[0][0] = critterWorld[0][Params.world_height + 1] = "+";
+		critterWorld[Params.world_width + 1][Params.world_height + 1] = critterWorld[Params.world_width + 1][0] = "+\n";
+		
+		for (int w = 1; w < (Params.world_width + 1); w++){
+			critterWorld[w][0] = "-";
+			critterWorld[w][Params.world_height + 1] = "-";
+		}
+		
+		for (int h = 1; h < (Params.world_height + 1); h++){
+			critterWorld[0][h] = "|";
+			critterWorld[Params.world_width + 1][h] = "|\n";
+		}
+		
+		for(Critter c: CritterWorld.critterCollection){ // place all the critters to the world
+			critterWorld[c.x_coord + 1][c.y_coord + 1] = c.toString(); // shift them so they fit inside the world 'box'
+		}
+		
+		for(int i = 0; i < (Params.world_height + 2); i++){
+			for(int j = 0; j < (Params.world_width + 2); j++){
+				System.out.print(critterWorld[j][i]);
+			}
+		}
 	}
 }
