@@ -116,6 +116,20 @@ public abstract class Critter {
 	}
 	
 	protected final void reproduce(Critter offspring, int direction) {
+		if(this.energy < Params.min_reproduce_energy){	// check that energy si greater than min reproduce energy
+			return;
+		}
+		if(this.energy % 2 == 0){	// energy is even
+			offspring.energy = this.energy/2;
+			this.energy = this.energy/2;
+		} else if (this.energy % 2 == 1){
+			offspring.energy = this.energy/2 + 1;
+			this.energy = this.energy/2 + 1;
+		}
+		offspring.x_coord = this.x_coord;
+		offspring.y_coord = this.y_coord;
+		offspring.walk(direction);
+		babies.add(offspring);
 	}
 
 	public abstract void doTimeStep();
@@ -289,7 +303,10 @@ public abstract class Critter {
 				break;
 			}
 		}
-		
+		for(Critter baby: babies){ // add all newly created critters in the world
+			CritterWorld.critterCollection.add(baby);
+		}
+		babies = new java.util.ArrayList<Critter>(); // create a new empty babies list
 	}
 	
 	public static void displayWorld() {
