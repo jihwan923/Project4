@@ -12,6 +12,7 @@
  */
 package assignment4;
 
+import java.lang.reflect.Constructor;
 import java.util.List;
 
 /* see the PDF for descriptions of the methods and fields in this class
@@ -48,12 +49,8 @@ public abstract class Critter {
 	
 	private int x_coord;
 	private int y_coord;
+	private boolean hasMoved = false;
 	
-	public Critter(){ // constructor for Critter
-		energy = Params.start_energy;
-		x_coord = getRandomInt(Params.world_width - 1);
-		y_coord = getRandomInt(Params.world_height - 1);
-	}
 	
 	protected int wrapX(int pos){
 		if (pos < 0){
@@ -104,28 +101,37 @@ public abstract class Critter {
 	}
 	
 	protected final void walk(int direction) {
-		x_coord = newX(direction);
-		y_coord = newY(direction);
+		if (!hasMoved){
+			x_coord = newX(direction);
+			y_coord = newY(direction);
+			hasMoved = true;
+		}
 		energy = energy - Params.walk_energy_cost;
 	}
 	
 	protected final void run(int direction) {
-		walk(direction);
-		walk(direction);
+		if (!hasMoved){
+			walk(direction);
+			hasMoved = false;
+			walk(direction);
+			hasMoved = true;
+		}
 		energy = energy - Params.run_energy_cost + Params.walk_energy_cost + Params.walk_energy_cost;
 	}
 	
 	protected final void reproduce(Critter offspring, int direction) {
-		if(this.energy < Params.min_reproduce_energy){	// check that energy si greater than min reproduce energy
+		if(this.energy < Params.min_reproduce_energy){	// check that energy is greater than min reproduce energy
 			return;
 		}
-		if(this.energy % 2 == 0){	// energy is even
-			offspring.energy = this.energy/2;
+		if(this.energy % 2 == 0){	// if energy is even
 			this.energy = this.energy/2;
-		} else if (this.energy % 2 == 1){
-			offspring.energy = this.energy/2 + 1;
-			this.energy = this.energy/2 + 1;
 		}
+		else{ // if energy is odd, round up the energy
+			this.energy = this.energy/2 + 1;	
+		}
+
+		offspring.energy = this.energy/2;
+		
 		offspring.x_coord = this.x_coord;
 		offspring.y_coord = this.y_coord;
 		offspring.walk(direction);
@@ -148,13 +154,17 @@ public abstract class Critter {
 	public static void makeCritter(String critter_class_name) throws InvalidCritterException {
 		try{
 			String packageClass = myPackage + "." + critter_class_name;
-			Class critterClass = Class.forName(packageClass);
-			Object newCritter = critterClass.newInstance();
+			Class<?> critterClass = Class.forName(packageClass);
+			Constructor<?> newConstructor = critterClass.getConstructor();
+			Object newCritter = newConstructor.newInstance();
 			
 			if (!(newCritter instanceof Critter)){
 				throw new InvalidCritterException(critter_class_name);
 			}
-			
+			Critter newCrit = (Critter)newCritter;
+			newCrit.energy = Params.start_energy;
+			newCrit.x_coord = getRandomInt(Params.world_width - 1);
+			newCrit.y_coord = getRandomInt(Params.world_height - 1);
 			CritterWorld.critterCollection.add((Critter)newCritter); // add to the critter collection
 		}
 		catch(ClassNotFoundException c){
@@ -188,7 +198,7 @@ public abstract class Critter {
 			}
 			
 			for(Critter c: CritterWorld.critterCollection){
-				if (critterClass.isAssignableFrom(c.getClass())){
+				if (critterClass.isAssignableFrom(c.getClass())){ ///// ?????
 					result.add(c);
 				}
 			}
@@ -266,8 +276,8 @@ public abstract class Critter {
 		 * ArrayList that has been provided in the starter code.  In any case, it has to be
 		 * implemented for grading tests to work.
 		 */
-		protected List<Critter> getPopulation() {
-			return population;
+		protected static List<Critter> getPopulation() {
+			return CritterWorld.critterCollection;
 		}
 		
 		/*
@@ -288,25 +298,86 @@ public abstract class Critter {
 			c.doTimeStep();
 		}
 		
+		boolean repeatAgain = true;
+		boolean breakOut = false;
+		
+		while(repeatAgain){ // deal with all conflicts/encounters of the critters
+			breakOut = false;
+			for(int i = 0; i < CritterWorld.critterCollection.size(); i++){
+				for(int j = i + 1; j < CritterWorld.critterCollection.size(); j++){
+					Critter c1 = CritterWorld.critterCollection.get(i);
+					Critter c2 = CritterWorld.critterCollection.get(j);
+					if ((c1.x_coord == c2.x_coord && c1.y_coord == c2.y_coord) && (c1.energy > 0 && c2.energy > 0)){
+						String name1 = c1.getClass().getName();
+						String name2 = c2.getClass().getName();
+						int cx1 = c1.x_coord;
+						int cx2 = c2.x_coord;
+						int cy1 = c1.y_coord;
+						int cy2 = c2.y_coord;
+						
+						boolean decision1 = c1.fight(name2);
+						boolean decision2 = c2.fight(name1);
+						if (!decision1){
+							if (!isRunSafe(c1)){
+								c1.x_coord = cx1;
+								c1.y_coord = cy1;
+							}
+						}
+						if (!decision2){
+							if (!isRunSafe(c2)){
+								c2.x_coord = cx2;
+								c2.y_coord = cy2;
+							}
+						}
+						
+						if (c1.energy > 0 && c2.energy > 0 && (c1.x_coord == c2.x_coord && c1.y_coord == c2.y_coord)){
+							encounter(c1,c2,decision1,decision2);
+							breakOut = true;
+						}
+					}
+
+				}
+				if (breakOut){
+					break;
+				}
+			}
+			if (!breakOut){ // if there were no conflicts, exit parsing the encounter
+				repeatAgain = false;
+			}
+		}
+		
 		for(Critter c: CritterWorld.critterCollection){ // apply rest energy cost to all critters
 			c.energy = c.energy - Params.rest_energy_cost;
 		}
 		
 		for(int i = 0; i < CritterWorld.critterCollection.size(); i++){ // remove all dead critters
 			Critter c = CritterWorld.critterCollection.get(i);
+			c.hasMoved = false;
 			if (c.energy <= 0){
 				CritterWorld.critterCollection.remove(i);
 				i -= 1;
 			}
 			
+			
 			if (CritterWorld.critterCollection.size() == 0){
 				break;
 			}
 		}
+		
+		for(int j = 0; j < Params.refresh_algae_count; j++){ // refresh algae count
+			try{
+				makeCritter("Algae");
+			}
+			catch(InvalidCritterException c){
+				
+			}
+		}
+		
 		for(Critter baby: babies){ // add all newly created critters in the world
+			baby.hasMoved = false;
 			CritterWorld.critterCollection.add(baby);
 		}
-		babies = new java.util.ArrayList<Critter>(); // create a new empty babies list
+		babies.clear();
 	}
 	
 	public static void displayWorld() {
@@ -340,5 +411,43 @@ public abstract class Critter {
 				System.out.print(critterWorld[j][i]);
 			}
 		}
+	}
+	
+	private static void encounter(Critter c1, Critter c2, boolean fight1, boolean fight2){
+		int powerLevel1 = getRandomInt(c1.energy);
+		int powerLevel2 = getRandomInt(c2.energy);
+		
+		if (!fight1){
+			powerLevel1 = 0;
+		}
+		if (!fight2){
+			powerLevel2 = 0;
+		}
+		
+		if (powerLevel1 > powerLevel2){
+			c1.energy = c1.energy + (c2.energy/2);
+			c2.energy = 0;
+		}
+		else{
+			c2.energy = c2.energy + (c1.energy/2);
+			c1.energy = 0;
+		}
+	}
+	
+	/*
+	 * Checks if the critter can run away to its wanted spot during a fight
+	 */
+	private static boolean isRunSafe(Critter crit){
+		for(Critter c: CritterWorld.critterCollection){
+			if (c.x_coord == crit.x_coord && c.y_coord == crit.y_coord && crit != c){
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public static void clearWorld(){
+		CritterWorld.critterCollection.clear();
+		babies.clear();
 	}
 }

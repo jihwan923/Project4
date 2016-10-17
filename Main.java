@@ -75,31 +75,48 @@ public class Main {
         
         int stepCount;
         String className;
+        String firstCommand;
+        boolean commandError = false;
         
         System.out.print("Command: ");
         String nextCommand = kb.nextLine();
         String[] inputList = nextCommand.split("\\s");
-        String firstCommand = inputList[0];
+        if (inputList.length != 0){
+        	firstCommand = inputList[0];
+        }
+        else{
+        	firstCommand = " ";
+        }
         while(!firstCommand.equals("quit")){
         	switch(firstCommand){
         		case "show": // disply the world
         			Critter.displayWorld();
         			break;
         		case "step": // for step
+        			if (inputList.length >= 3){
+        				commandError = true;
+        				break;
+        			}
         			stepCount = 1;
         			if(inputList.length > 1){
         				stepCount = Integer.parseInt(inputList[1]);
         			}
+
         			for(int i = 0; i < stepCount; i++){
         				Critter.worldTimeStep();
         			}
         			break;
         		case "make": // make critter command
+        			if (inputList.length >= 4){
+        				commandError = true;
+        				break;
+        			}
         			stepCount = 1;
         			className = inputList[1];
         			if (inputList.length > 2){
         				stepCount = Integer.parseInt(inputList[2]);
         			}
+
         			for(int i = 0; i < stepCount; i++){
         				try{
         					Critter.makeCritter(className);
@@ -112,12 +129,18 @@ public class Main {
         		case "stats": // calls class stats
         			className = inputList[1];
         			try{
-        				String fullName = myPackage + "." + className;
-        				Class critterClass = Class.forName(fullName);
-        				java.util.List<Critter> critterClassList = Critter.getInstances(className);
-        				Class<?>[] types = {critterClassList.getClass()};
-        				Method runStatsMethod = critterClass.getMethod("runStats", types);
-        				runStatsMethod.invoke(null, critterClassList);
+        				if (inputList.length < 3){
+        					String fullName = myPackage + "." + className;
+        					Class critterClass = Class.forName(fullName);
+        					java.util.List<Critter> critterClassList = Critter.getInstances(className);
+        					Class<?>[] types = {List.class};
+        					Method runStatsMethod = critterClass.getMethod("runStats", types);
+        					runStatsMethod.invoke(null, critterClassList);
+        				}
+        				else{
+            				commandError = true;
+            				break;
+            			}
         			}
         			catch(InvalidCritterException c){
         				System.out.println("Invalid Critter Type!");
@@ -129,12 +152,22 @@ public class Main {
         				
         			}
         			break;
+        		default:
+        			commandError = true;
         	}
-        	
+        	if (commandError){
+        		System.out.println("error processing: " + nextCommand);
+        	}
         	System.out.print("Command: ");
         	nextCommand = kb.nextLine();
         	inputList = nextCommand.split("\\s");
-        	firstCommand = inputList[0];
+        	if (inputList.length != 0){
+            	firstCommand = inputList[0];
+            }
+            else{
+            	firstCommand = " ";
+            }
+        	commandError = false;
         }
         
         
