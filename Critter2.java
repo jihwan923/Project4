@@ -3,7 +3,7 @@ package assignment4;
 public class Critter2 extends Critter {
 
 	@Override
-	public String toString() { return "S"; }
+	public String toString() { return "2"; }
 	
 	private static final int GENE_TOTAL = 24;
 	private int[] genes = new int[8];
@@ -74,7 +74,7 @@ public class Critter2 extends Critter {
 	@Override
 	public boolean fight(String opponent) {
 		Algae alg = new Algae();
-		String algaeName = alg.getClass().getName();
+		String algaeName = alg.toString();
 		int encounterChoice = Critter.getRandomInt(99);
 		
 		// majority of the time, this imbecile critter thinks algae is dangerous

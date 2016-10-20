@@ -3,7 +3,7 @@ package assignment4;
 public class Critter1 extends Critter {
 	
 	@Override
-	public String toString() { return "N"; }
+	public String toString() { return "1"; }
 	
 	private int[] moveGenes = new int[4];
 	private int dir;
@@ -40,8 +40,8 @@ public class Critter1 extends Critter {
 	public boolean fight(String opponent) {
 		// fights algae or its own type when it has sufficient energy
 		Algae alg = new Algae();
-		String algaeName = alg.getClass().getName();
-		String cannibalName = this.getClass().getName();
+		String algaeName = alg.toString();
+		String cannibalName = "1";
 		if ((opponent.equals(algaeName) || opponent.equals(cannibalName)) && getEnergy() > 20){ 
 			return true;
 		}
@@ -49,4 +49,10 @@ public class Critter1 extends Critter {
 		return false;
 	}
 
+	public static void runStats(java.util.List<Critter> cannibals) {
+		int total_gene = 0;
+
+		System.out.print("" + cannibals.size() + " total Critter1/Cannibals");
+		System.out.println();
+	}
 }

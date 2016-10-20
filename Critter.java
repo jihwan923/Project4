@@ -51,7 +51,11 @@ public abstract class Critter {
 	private int y_coord;
 	private boolean hasMoved = false;
 	
-	
+	/**
+	  * Given position, it wraps it around the world_width if it is beyond the edge
+	  * @param pos is the position that is to be tested
+	  * @return return either a wrapped position or unwrapped position if pos is valid
+	  */
 	protected int wrapX(int pos){
 		if (pos < 0){
 			return Params.world_width - 1;
@@ -64,6 +68,11 @@ public abstract class Critter {
 		}
 	}
 	
+	/**
+	  * Given position, it wraps it around the world_height if it is beyond the edge
+	  * @param pos is the position that is to be tested
+	  * @return return either a wrapped position or unwrapped position if pos is valid
+	  */
 	protected int wrapY(int pos){
 		if (pos < 0){
 			return Params.world_height - 1;
@@ -76,6 +85,11 @@ public abstract class Critter {
 		}
 	}
 	
+	/**
+	  * Given direction, it calculates the new x position
+	  * @param direction is the direction of the movement
+	  * @return return new x coordinate
+	  */
 	protected int newX(int direction){
 		switch(direction){
 		case 0: return wrapX(x_coord + 1);
@@ -88,6 +102,11 @@ public abstract class Critter {
 		return x_coord; // for directions 2 and 6
 	}
 	
+	/**
+	  * Given direction, it calculates the new y position
+	  * @param direction is the direction of the movement
+	  * @return return new y coordinate
+	  */
 	protected int newY(int direction){
 		switch(direction){
 		case 5: return wrapY(y_coord + 1);
@@ -100,6 +119,11 @@ public abstract class Critter {
 		return y_coord; // for direction 0 and 4
 	}
 	
+	/**
+	  * Given direction, it moves the critter 1 step to that direction
+	  * @param direction is the direction of the movement
+	  * @return nothing is returned
+	  */
 	protected final void walk(int direction) {
 		if (!hasMoved){
 			x_coord = newX(direction);
@@ -109,16 +133,30 @@ public abstract class Critter {
 		energy = energy - Params.walk_energy_cost;
 	}
 	
+	/**
+	  * Given direction, it moves the critter 2 step to that direction
+	  * @param direction is the direction of the movement
+	  * @return nothing is returned
+	  */
 	protected final void run(int direction) {
 		if (!hasMoved){
 			walk(direction);
 			hasMoved = false;
 			walk(direction);
 			hasMoved = true;
+			energy = energy - Params.run_energy_cost + Params.walk_energy_cost + Params.walk_energy_cost;
 		}
-		energy = energy - Params.run_energy_cost + Params.walk_energy_cost + Params.walk_energy_cost;
+		else{ // if critter has already moved, just subtract the run cost
+			energy = energy - Params.run_energy_cost;
+		}
 	}
 	
+	/**
+	  * Initialize the new offspring and add it to the babies list
+	  * @param offspring is the newly created child of a critter
+	  * @param direction is the direction the baby will be moved to
+	  * @return nothing is returned
+	  */
 	protected final void reproduce(Critter offspring, int direction) {
 		if(this.energy < Params.min_reproduce_energy){	// check that energy is greater than min reproduce energy
 			return;
@@ -134,12 +172,14 @@ public abstract class Critter {
 		
 		offspring.x_coord = this.x_coord;
 		offspring.y_coord = this.y_coord;
-		offspring.walk(direction);
-		babies.add(offspring);
+		offspring.walk(direction); // move the baby 1 step away from parent
+		
+		babies.add(offspring); // add it to the babies collection temporarily for a time step
 	}
 
-	public abstract void doTimeStep();
-	public abstract boolean fight(String oponent);
+	// Implemented on our critter classes
+	public abstract void doTimeStep(); 
+	public abstract boolean fight(String oponent); 
 	
 	/**
 	 * create and initialize a Critter subclass.
@@ -189,9 +229,13 @@ public abstract class Critter {
 	 */
 	public static List<Critter> getInstances(String critter_class_name) throws InvalidCritterException {
 		List<Critter> result = new java.util.ArrayList<Critter>();
+		
+		if (critter_class_name.equals("Critter")){
+			throw new InvalidCritterException(critter_class_name);
+		}
 		try{
 			String packageClass = myPackage + "." + critter_class_name;
-			Class critterClass = Class.forName(packageClass);
+			Class<?> critterClass = Class.forName(packageClass);
 			Object newCritter = critterClass.newInstance();
 			if (!(newCritter instanceof Critter)){
 				throw new InvalidCritterException(critter_class_name);
@@ -203,14 +247,8 @@ public abstract class Critter {
 				}
 			}
 		}
-		catch(ClassNotFoundException c){
-			
-		}
-		catch(InstantiationException i){
-			
-		}
-		catch(IllegalAccessException a){
-			
+		catch(Exception e){
+			throw new InvalidCritterException(critter_class_name);
 		}
 		return result;
 	}
@@ -291,8 +329,17 @@ public abstract class Critter {
 		}
 	}
 	
-	
-
+	/**
+	  * Implements a time step that does the following in order:
+	  * 1. Invoke doTimeStep for all critters
+	  * 2. Resolves conflicts and fights between critters
+	  * 3. Apply rest energy cost to all critters
+	  * 4. Remove all dead critters
+	  * 5. Refresh algae count in the world
+	  * 6. Add newly created babies to the world
+	  * @param nothing is passed in
+	  * @return nothing is returned
+	  */
 	public static void worldTimeStep() {
 		for(Critter c: CritterWorld.critterCollection){ // invoke doTimeStep for all critters
 			c.doTimeStep();
@@ -308,8 +355,8 @@ public abstract class Critter {
 					Critter c1 = CritterWorld.critterCollection.get(i);
 					Critter c2 = CritterWorld.critterCollection.get(j);
 					if ((c1.x_coord == c2.x_coord && c1.y_coord == c2.y_coord) && (c1.energy > 0 && c2.energy > 0)){
-						String name1 = c1.getClass().getName();
-						String name2 = c2.getClass().getName();
+						String name1 = c1.toString();
+						String name2 = c2.toString();
 						int cx1 = c1.x_coord;
 						int cx2 = c2.x_coord;
 						int cy1 = c1.y_coord;
@@ -333,9 +380,9 @@ public abstract class Critter {
 						if (c1.energy > 0 && c2.energy > 0 && (c1.x_coord == c2.x_coord && c1.y_coord == c2.y_coord)){
 							encounter(c1,c2,decision1,decision2);
 							breakOut = true;
+							break;
 						}
 					}
-
 				}
 				if (breakOut){
 					break;
@@ -352,7 +399,7 @@ public abstract class Critter {
 		
 		for(int i = 0; i < CritterWorld.critterCollection.size(); i++){ // remove all dead critters
 			Critter c = CritterWorld.critterCollection.get(i);
-			c.hasMoved = false;
+			c.hasMoved = false; 
 			if (c.energy <= 0){
 				CritterWorld.critterCollection.remove(i);
 				i -= 1;
@@ -380,6 +427,11 @@ public abstract class Critter {
 		babies.clear();
 	}
 	
+	/**
+	  * Displays the current status of the world
+	  * @param nothing is passed in
+	  * @return nothing is returned
+	  */
 	public static void displayWorld() {
 		String[][] critterWorld = new String[Params.world_width + 2][Params.world_height + 2];
 		
@@ -413,6 +465,14 @@ public abstract class Critter {
 		}
 	}
 	
+	/**
+	  * Resolves encounter of two critters in same spot
+	  * @param c1 is the first critter
+	  * @param c2 is the second critter
+	  * @param fight1 is first critter's decision to fight
+	  * @param fight2 is second critter's decision to fight
+	  * @return nothing is returned
+	  */
 	private static void encounter(Critter c1, Critter c2, boolean fight1, boolean fight2){
 		int powerLevel1 = getRandomInt(c1.energy);
 		int powerLevel2 = getRandomInt(c2.energy);
@@ -424,28 +484,35 @@ public abstract class Critter {
 			powerLevel2 = 0;
 		}
 		
-		if (powerLevel1 > powerLevel2){
+		if (powerLevel1 > powerLevel2){ // the critter with lower fight/power level loses
 			c1.energy = c1.energy + (c2.energy/2);
 			c2.energy = 0;
 		}
-		else{
+		else{ // if both have same power/fight level, just choose second critter as the winner
 			c2.energy = c2.energy + (c1.energy/2);
 			c1.energy = 0;
 		}
 	}
 	
-	/*
-	 * Checks if the critter can run away to its wanted spot during a fight
-	 */
+	/**
+	  * Checks if a critter during encounter can run away to the spot it wants to run to
+	  * @param crit is the critter that is being checked
+	  * @return return true if critter can run to the spot safely
+	  */
 	private static boolean isRunSafe(Critter crit){
 		for(Critter c: CritterWorld.critterCollection){
-			if (c.x_coord == crit.x_coord && c.y_coord == crit.y_coord && crit != c){
+			if (c.x_coord == crit.x_coord && c.y_coord == crit.y_coord && crit != c && c.energy > 0){
 				return false;
 			}
 		}
 		return true;
 	}
 	
+	/**
+	  * Clear the world
+	  * @param nothing is passed in
+	  * @return nothing is returned
+	  */
 	public static void clearWorld(){
 		CritterWorld.critterCollection.clear();
 		babies.clear();

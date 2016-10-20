@@ -77,8 +77,9 @@ public class Main {
         String className;
         String firstCommand;
         boolean commandError = false;
+        boolean processError = false;
         
-        System.out.print("Command: ");
+        System.out.print("critters>");
         String nextCommand = kb.nextLine();
         String[] inputList = nextCommand.split("\\s");
         if (inputList.length != 0){
@@ -87,49 +88,58 @@ public class Main {
         else{
         	firstCommand = " ";
         }
-        while(!firstCommand.equals("quit")){
+        while(!(firstCommand.equals("quit") && inputList.length == 1)){
         	switch(firstCommand){
-        		case "show": // disply the world
+        		case "show": // display the world
+        			if (inputList.length >= 2){
+        				processError = true;
+        				break;
+        			}
         			Critter.displayWorld();
         			break;
         		case "step": // for step
-        			if (inputList.length >= 3){
-        				commandError = true;
-        				break;
-        			}
-        			stepCount = 1;
-        			if(inputList.length > 1){
-        				stepCount = Integer.parseInt(inputList[1]);
-        			}
+        			try{
+        				if (inputList.length >= 3){
+        					processError = true;
+        					break;
+        				}
+        				stepCount = 1;
+        				if(inputList.length > 1){
+        					stepCount = Integer.parseInt(inputList[1]);
+        				}
 
-        			for(int i = 0; i < stepCount; i++){
-        				Critter.worldTimeStep();
+        				for(int i = 0; i < stepCount; i++){
+        					Critter.worldTimeStep();
+        				}
+        			}
+        			catch(Exception e){
+        				processError = true;
         			}
         			break;
         		case "make": // make critter command
-        			if (inputList.length >= 4){
-        				commandError = true;
-        				break;
-        			}
-        			stepCount = 1;
-        			className = inputList[1];
-        			if (inputList.length > 2){
-        				stepCount = Integer.parseInt(inputList[2]);
-        			}
+        			try{
+        				if (inputList.length >= 4){
+        					processError = true;
+        					break;
+        				}
+        				stepCount = 1;
+        				className = inputList[1];
+        				if (inputList.length > 2){
+        					stepCount = Integer.parseInt(inputList[2]);
+        				}
 
-        			for(int i = 0; i < stepCount; i++){
-        				try{
+        				for(int i = 0; i < stepCount; i++){
         					Critter.makeCritter(className);
         				}
-        				catch(InvalidCritterException c){
-        					System.out.println("Cannot create such critter!");
-        				}
+        			}
+        			catch(Exception e){
+        				processError = true;
         			}
         			break;
         		case "stats": // calls class stats
-        			className = inputList[1];
         			try{
-        				if (inputList.length < 3){
+        				if (inputList.length >= 2 && inputList.length < 3){
+        					className = inputList[1];
         					String fullName = myPackage + "." + className;
         					Class critterClass = Class.forName(fullName);
         					java.util.List<Critter> critterClassList = Critter.getInstances(className);
@@ -138,27 +148,24 @@ public class Main {
         					runStatsMethod.invoke(null, critterClassList);
         				}
         				else{
-            				commandError = true;
+            				processError = true;
             				break;
             			}
         			}
-        			catch(InvalidCritterException c){
-        				System.out.println("Invalid Critter Type!");
-        			}
-        			catch(ClassNotFoundException n){
-        				
-        			}
         			catch(Exception e){
-        				
+        				processError = true;
         			}
         			break;
         		default:
         			commandError = true;
         	}
         	if (commandError){
+        		System.out.println("invalid command: " + nextCommand);
+        	}
+        	if (processError){
         		System.out.println("error processing: " + nextCommand);
         	}
-        	System.out.print("Command: ");
+        	System.out.print("critters>");
         	nextCommand = kb.nextLine();
         	inputList = nextCommand.split("\\s");
         	if (inputList.length != 0){
@@ -168,6 +175,7 @@ public class Main {
             	firstCommand = " ";
             }
         	commandError = false;
+        	processError = false;
         }
         
         
