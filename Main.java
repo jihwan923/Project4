@@ -71,7 +71,7 @@ public class Main {
         /* Do not alter the code above for your submission. */
         /* Write your code below. */
         
-        System.out.println("GLHF");
+        //System.out.println("GLHF");
         
         int stepCount;
         String className;
@@ -96,6 +96,14 @@ public class Main {
         				break;
         			}
         			Critter.displayWorld();
+        			break;
+        		case "seed": // invoke setSeed
+        			if (inputList.length >= 3){
+        				processError = true;
+        				break;
+        			}
+        			long input = Integer.parseInt(inputList[1]);
+        			Critter.setSeed(input);
         			break;
         		case "step": // for step
         			try{

@@ -203,8 +203,8 @@ public abstract class Critter {
 			}
 			Critter newCrit = (Critter)newCritter;
 			newCrit.energy = Params.start_energy;
-			newCrit.x_coord = getRandomInt(Params.world_width - 1);
-			newCrit.y_coord = getRandomInt(Params.world_height - 1);
+			newCrit.x_coord = getRandomInt(Params.world_width);
+			newCrit.y_coord = getRandomInt(Params.world_height);
 			CritterWorld.critterCollection.add((Critter)newCritter); // add to the critter collection
 		}
 		catch(ClassNotFoundException c){
@@ -474,8 +474,8 @@ public abstract class Critter {
 	  * @return nothing is returned
 	  */
 	private static void encounter(Critter c1, Critter c2, boolean fight1, boolean fight2){
-		int powerLevel1 = getRandomInt(c1.energy);
-		int powerLevel2 = getRandomInt(c2.energy);
+		int powerLevel1 = getRandomInt(c1.energy + 1);
+		int powerLevel2 = getRandomInt(c2.energy + 1);
 		
 		if (!fight1){
 			powerLevel1 = 0;
@@ -500,7 +500,7 @@ public abstract class Critter {
 	  * @return return true if critter can run to the spot safely
 	  */
 	private static boolean isRunSafe(Critter crit){
-		for(Critter c: CritterWorld.critterCollection){
+		for(Critter c: CritterWorld.critterCollection){ // dead critters are ignored
 			if (c.x_coord == crit.x_coord && c.y_coord == crit.y_coord && crit != c && c.energy > 0){
 				return false;
 			}
