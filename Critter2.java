@@ -1,7 +1,24 @@
+/* CRITTERS Main.java
+ * EE422C Project 4 submission by
+ * Jihwan Lee
+ * jl54387
+ * 16445
+ * Kevin Liang
+ * kgl392
+ * 16445
+ * Slip days used: <0>
+ * Fall 2016
+ */
+
 package assignment4;
 
 public class Critter2 extends Critter {
 
+	/*
+	 * Returns string identity of Critter2
+	 * @param none
+	 * @return return "2"
+	 */
 	@Override
 	public String toString() { return "2"; }
 	
@@ -18,10 +35,15 @@ public class Critter2 extends Critter {
 		dir = Critter.getRandomInt(8);
 	}
 	
+	/*
+	 * Perform time step for critter2
+	 * @param none
+	 * @return nothings is returned
+	 */
 	@Override
 	public void doTimeStep() {
 		// stupid critter always wastes energy by walking or running twice.
-		int moveDecision = Critter.getRandomInt(2);
+		int moveDecision = Critter.getRandomInt(3);
 		switch(moveDecision){
 			case 0:
 				run(dir);
@@ -35,10 +57,10 @@ public class Critter2 extends Critter {
 				break;
 		}
 		
-		if (getEnergy() > Params.min_reproduce_energy) {
+		if (getEnergy() >= Params.min_reproduce_energy) {
 			Critter2 child = new Critter2();
 			child.encounterGene = this.encounterGene;
-			int e = Critter.getRandomInt(99);
+			int e = Critter.getRandomInt(100);
 			if (e < 10){
 				child.encounterGene -= 1;
 				if (child.encounterGene < 0){
@@ -71,14 +93,17 @@ public class Critter2 extends Critter {
 		dir = (dir + turn) % 8;
 	}
 
+	/*
+	 * Perfrom fight actions for critter 2
+	 * @param opponent's string identity
+	 * @return returns true if critter wants to fight
+	 */
 	@Override
 	public boolean fight(String opponent) {
-		Algae alg = new Algae();
-		String algaeName = alg.toString();
-		int encounterChoice = Critter.getRandomInt(99);
+		int encounterChoice = Critter.getRandomInt(100);
 		
-		// majority of the time, this imbecile critter thinks algae is dangerous
-		if (opponent.equals(algaeName) && (encounterChoice < encounterGene)){  
+		// majority of the time, this critter thinks algae is dangerous
+		if (opponent.equals("A") && (encounterChoice < encounterGene)){  
 			run(dir); // it wastes more energy by running
 			run(dir); // AND wastes another energy by running again
 			return false;
@@ -94,7 +119,7 @@ public class Critter2 extends Critter {
 			Critter2 c = (Critter2) obj;
 			total_gene += c.encounterGene;
 		}
-		System.out.print("" + imbs.size() + " total Imbeciles    ");
+		System.out.print("" + imbs.size() + " total Critter 2    ");
 		if (imbs.size() > 0){
 			System.out.print("" + total_gene / (imbs.size()) + "% avoid Algae ");
 		}

@@ -1,12 +1,11 @@
 /* CRITTERS Main.java
  * EE422C Project 4 submission by
- * Replace <...> with your actual data.
- * <Student1 Name>
- * <Student1 EID>
- * <Student1 5-digit Unique No.>
- * <Student2 Name>
- * <Student2 EID>
- * <Student2 5-digit Unique No.>
+ * Jihwan Lee
+ * jl54387
+ * 16445
+ * Kevin Liang
+ * kgl392
+ * 16445
  * Slip days used: <0>
  * Fall 2016
  */
@@ -79,7 +78,7 @@ public class Main {
         boolean commandError = false;
         boolean processError = false;
         
-        System.out.print("critters>");
+        System.out.print("critters> ");
         String nextCommand = kb.nextLine();
         String[] inputList = nextCommand.split("\\s");
         if (inputList.length != 0){
@@ -173,7 +172,7 @@ public class Main {
         	if (processError){
         		System.out.println("error processing: " + nextCommand);
         	}
-        	System.out.print("critters>");
+        	System.out.print("critters> ");
         	nextCommand = kb.nextLine();
         	inputList = nextCommand.split("\\s");
         	if (inputList.length != 0){
@@ -188,7 +187,6 @@ public class Main {
         
         
         /* Write your code above */
-        System.out.flush();
-
+        //System.out.flush();
     }
 }
